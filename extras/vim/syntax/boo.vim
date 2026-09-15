@@ -56,14 +56,14 @@ syn keyword booConditional      if elif else unless
 
 syn keyword booStatement        break continue return pass yield goto
 syn keyword booStatement        get set
-syn keyword booStatement        constructor destructor typeof super
+syn keyword booStatement        constructor destructor typeof super end
 
 syn keyword booOperator         and in is isa in not or of cast as
 
 syn keyword booExceptionKWs     try except raise ensure failure
 
 syn keyword booStorage          callable class def enum do
-syn keyword booStorage          interface namespace struct
+syn keyword booStorage          interface namespace struct macro
 
 syn keyword booTodo             WARNING TODO FIXME XXX contained
 syn match   booComment          "#.*$" contains=booTodo
@@ -72,8 +72,8 @@ syn region  booRegionComment    start="/\*"  end="\*/" contains=booTodo
 
 " strings
 syn region  booString           matchgroup=Normal start=+[uU]\='+ end=+'+ skip=+\\\\\|\\'+ contains=booEscape
-syn region  booString           matchgroup=Normal start=+[uU]\="+ end=+"+ skip=+\\\\\|\\"+ contains=booEscape
-syn region  booString           matchgroup=Normal start=+[uU]\="""+ end=+"""+ contains=booEscape
+syn region  booString           matchgroup=Normal start=+[uU]\="+ end=+"+ skip=+\\\\\|\\"+ contains=booEscape,booInterpolation
+syn region  booString           matchgroup=Normal start=+[uU]\="""+ end=+"""+ contains=booEscape,booInterpolation
 syn region  booString           matchgroup=Normal start=+[uU]\='''+ end=+'''+ contains=booEscape
 syn region  booRawString        matchgroup=Normal start=+[uU]\=[rR]'+ end=+'+ skip=+\\\\\|\\'+
 syn region  booRawString        matchgroup=Normal start=+[uU]\=[rR]"+ end=+"+ skip=+\\\\\|\\"+
@@ -84,7 +84,14 @@ syn match   booEscape           "\\\o\{1,3}" contained
 syn match   booEscape           "\\x\x\{2}" contained
 syn match   booEscape           "\(\\u\x\{4}\|\\U\x\{8}\)" contained
 syn match   booEscape           "\\$"
-" TODO: regexp?
+
+" "Hello, $name" and "total: $(a + b)" in double quoted strings
+syn match   booInterpolation    "\$\h\w*" contained
+syn region  booInterpolation    matchgroup=Special start=+\$(+ end=+)+ contained contains=TOP
+syn region  booInterpolation    matchgroup=Special start=+\${+ end=+}+ contained contains=TOP
+
+" @/regex/ literals. A bare /regex/ cannot be told from division here.
+syn region  booRegex            start=+@/+ skip=+\\\\\|\\/+ end=+/+
 
 if exists("boo_highlight_all")
         let boo_highlight_numbers = 1
@@ -102,7 +109,7 @@ if exists("boo_highlight_builtins")
         " grep "^macro" Boo.Lang.Extensions/Macros/*.boo
         syn keyword booBuiltin assert unchecked checked debug lock preserving print
         syn keyword booBuiltin property normalArrayIndexing rawArrayIndexing using
-        syn keyword booBuiltin yieldAll
+        syn keyword booBuiltin yieldAll match case otherwise var initialization
 
         " built-in functions from booish:
         " dir(Boo.Lang.Builtins)
@@ -115,9 +122,9 @@ if exists("boo_highlight_builtins")
         syn keyword booType    bool sbyte byte short ushort int uint long ulong
         syn keyword booType    single double char string regex timespan
 
-        " self
-        syn keyword booBuiltin self
 endif
+
+syn keyword booSelf             self
 
 "------------------------------------------------------------------------------
 " Numbers from:
@@ -203,6 +210,8 @@ if version >= 508 || !exists("did_boo_syn_inits")
         HiLink booRawString           String
         HiLink booRegex               String
         HiLink booEscape              Special
+        HiLink booInterpolation       Identifier
+        HiLink booSelf                Identifier
         if exists("boo_highlight_builtins")
                 HiLink booBuiltin     Function
                 HiLink booType        Type
